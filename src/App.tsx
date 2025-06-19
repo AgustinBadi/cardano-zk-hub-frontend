@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react';
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+interface GithubRequirements {
+  minimumFollowing: number;
+  minimumFollowers: number;
+  minimumPublicRepos: number;
+  minimumAge: number;
 }
 
-export default App
+interface Ceremony {
+  authProviders: string[];
+  id: number;
+  prefix: string;
+  state: string;
+  type: string;
+  coordinatorId: string;
+  title: string;
+  description: string;
+  startDate: number; // timestamp en milisegundos
+  endDate: number;   // timestamp en milisegundos
+  timeoutMechanismType: string;
+  penalty: number;
+  github: GithubRequirements;
+  siwe: any | null;
+  bandada: any | null;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  circuits: any[];   // Puedes especificar más si tienes estructura
+  participants: any[]; // Igual que circuits
+}
+
+function App() {
+  const [ceremonies, setCeremonies] = useState<Ceremony[]>([])
+
+  const fetchData = async function obtenerUsuarios() {
+    try {
+      const response = await fetch('http://localhost:3000/ceremonies/find-all');
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Usuarios:', data);
+      setCeremonies(data.allCeremonies)
+    } catch (error) {
+      console.error('Error al obtener usuarios:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  console.log(fetchData)
+ return (
+    <>
+      <div>
+        <ul>
+          {ceremonies.map((ceremony, index) => (
+            <li key={index}>{ceremony.title}</li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
+
+export default App;
