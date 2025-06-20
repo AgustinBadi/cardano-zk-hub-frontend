@@ -49,6 +49,16 @@ function CeremoniesData() {
     }
   };
 
+  function fromPosixToDate(posixTime:number){
+    return new Date(posixTime).toString()
+  }
+
+  function deadLine(posixTime:number){
+    const currentTime = new Date().getTime()
+    const deadLineTime = posixTime - currentTime
+    return deadLineTime / 86400000
+  }
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -58,7 +68,21 @@ function CeremoniesData() {
       <div>
         <ul>
           {ceremonies.map((ceremony, index) => (
-            <li key={index}>{ceremony.title}</li>
+            <li key={index}>
+              <div>
+                <h2>{ceremony.title}</h2>
+                <p>{ceremony.description}</p>
+                <div>
+                  <p>Start date:{fromPosixToDate(ceremony.startDate)}</p>
+                  <p>End date:{fromPosixToDate(ceremony.endDate)}</p>
+                  <p>DeadLine: {
+                    deadLine(ceremony.endDate) >= 0
+                    ? `${deadLine(ceremony.endDate).toFixed(2)} days left`
+                    : `${Math.abs(deadLine(ceremony.endDate)).toFixed(2)} days ago`
+                  }</p>
+                </div>
+              </div>
+            </li>
           ))}
         </ul>
       </div>

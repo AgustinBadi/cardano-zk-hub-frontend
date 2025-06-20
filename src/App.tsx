@@ -1,9 +1,9 @@
-import CeremoniesData from './components/CeremoniesData';
+import { CeremoniesTable } from './pages/CeremoniesTable';
 
 
 const App = () => {
   return (
-    <CeremoniesData/>
+    <CeremoniesTable/>
   )
 }
 
