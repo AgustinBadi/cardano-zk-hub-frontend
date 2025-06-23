@@ -31,12 +31,12 @@ interface Ceremony {
   participants: any[]; // Igual que circuits
 }
 
-function CeremoniesData() {
+function CeremoniesData(state:string) {
   const [ceremonies, setCeremonies] = useState<Ceremony[]>([])
 
   const fetchData = async function obtenerUsuarios() {
     try {
-      const response = await fetch('http://localhost:3000/ceremonies/find-all');
+      const response = await fetch(`http://localhost:3000/ceremonies/${state}`);
 
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
@@ -63,9 +63,19 @@ function CeremoniesData() {
     fetchData();
   }, []);
 
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedFilter = e.target.value;
+    CeremoniesData(selectedFilter);
+  };
+
  return (
     <>
       <div>
+        <select onChange={handleChange} defaultValue="">
+          <option value="find-opened">OPEN</option>
+          <option value="find-closed">CLOSED</option>
+          <option value="find-scheduled">SCHEDULED</option>
+      </select>
         <ul>
           {ceremonies.map((ceremony, index) => (
             <li key={index}>
