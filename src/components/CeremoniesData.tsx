@@ -18,8 +18,8 @@ interface Ceremony {
   coordinatorId: string;
   title: string;
   description: string;
-  startDate: number; // timestamp en milisegundos
-  endDate: number;   // timestamp en milisegundos
+  startDate: number; // timestamp in miliseconds
+  endDate: number;   // timestamp in miliseconds
   timeoutMechanismType: string;
   penalty: number;
   github: GithubRequirements;
@@ -27,14 +27,14 @@ interface Ceremony {
   bandada: any | null;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
-  circuits: any[];   // Puedes especificar más si tienes estructura
-  participants: any[]; // Igual que circuits
+  circuits: any[];
+  participants: any[];
 }
 
-function CeremoniesData(state:string) {
+function CeremoniesData(state: string) {
   const [ceremonies, setCeremonies] = useState<Ceremony[]>([])
 
-  const fetchData = async function obtenerUsuarios() {
+  const fetchData = async function getCeremonies() {
     try {
       const response = await fetch(`http://localhost:3000/ceremonies/${state}`);
 
@@ -42,18 +42,18 @@ function CeremoniesData(state:string) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Usuarios:', data);
+      console.log('Ceremonies: ', data);
       setCeremonies(data.allCeremonies)
     } catch (error) {
-      console.error('Error al obtener usuarios:', error);
+      console.error('Error at fetching ceremonies:', error);
     }
   };
 
-  function fromPosixToDate(posixTime:number){
+  function fromPosixToDate(posixTime: number) {
     return new Date(posixTime).toString()
   }
 
-  function deadLine(posixTime:number){
+  function deadLine(posixTime: number) {
     const currentTime = new Date().getTime()
     const deadLineTime = posixTime - currentTime
     return deadLineTime / 86400000
@@ -63,19 +63,19 @@ function CeremoniesData(state:string) {
     fetchData();
   }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedFilter = e.target.value;
     CeremoniesData(selectedFilter);
   };
 
- return (
+  return (
     <>
       <div>
         <select onChange={handleChange} defaultValue="">
           <option value="find-opened">OPEN</option>
           <option value="find-closed">CLOSED</option>
           <option value="find-scheduled">SCHEDULED</option>
-      </select>
+        </select>
         <ul>
           {ceremonies.map((ceremony, index) => (
             <li key={index}>
@@ -87,8 +87,8 @@ function CeremoniesData(state:string) {
                   <p>End date:{fromPosixToDate(ceremony.endDate)}</p>
                   <p>DeadLine: {
                     deadLine(ceremony.endDate) >= 0
-                    ? `${deadLine(ceremony.endDate).toFixed(2)} days left`
-                    : `${Math.abs(deadLine(ceremony.endDate)).toFixed(2)} days ago`
+                      ? `${deadLine(ceremony.endDate).toFixed(2)} days left`
+                      : `${Math.abs(deadLine(ceremony.endDate)).toFixed(2)} days ago`
                   }</p>
                 </div>
               </div>
