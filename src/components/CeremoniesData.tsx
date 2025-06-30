@@ -18,82 +18,104 @@ interface Ceremony {
   coordinatorId: string;
   title: string;
   description: string;
-  startDate: number; // timestamp in miliseconds
-  endDate: number;   // timestamp in miliseconds
+  startDate: number;
+  endDate: number;
   timeoutMechanismType: string;
   penalty: number;
   github: GithubRequirements;
   siwe: any | null;
   bandada: any | null;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
   circuits: any[];
   participants: any[];
 }
 
-function CeremoniesData(state: string) {
-  const [ceremonies, setCeremonies] = useState<Ceremony[]>([])
+function CeremoniesData() {
 
-  const fetchData = async function getCeremonies() {
-    try {
-      const response = await fetch(`http://localhost:3000/ceremonies/${state}`);
+  const [allCeremonies, setAllCeremonies] = useState<Ceremony[]>([]);
 
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('Ceremonies: ', data);
-      setCeremonies(data.allCeremonies)
-    } catch (error) {
-      console.error('Error at fetching ceremonies:', error);
-    }
-  };
+  const [filter, setFilter] = useState('ALL');
 
-  function fromPosixToDate(posixTime: number) {
-    return new Date(posixTime).toString()
-  }
-
-  function deadLine(posixTime: number) {
-    const currentTime = new Date().getTime()
-    const deadLineTime = posixTime - currentTime
-    return deadLineTime / 86400000
-  }
 
   useEffect(() => {
-    fetchData();
+    const fetchAllData = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/ceremonies/find-all`);
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        const data = await response.json();
+        setAllCeremonies(data.allCeremonies || []);
+      } catch (error) {
+        console.error('Error fetching ceremonies:', error);
+        setAllCeremonies([]);
+      }
+    };
+
+    fetchAllData();
   }, []);
 
+
+  function fromPosixToDate(posixTime: number) {
+    return new Date(posixTime).toLocaleString();
+  }
+
+
+  function deadLine(posixTime: number) {
+    const currentTime = new Date().getTime();
+    const deadLineTime = posixTime - currentTime;
+    return deadLineTime / (1000 * 60 * 60 * 24);
+  }
+
+
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedFilter = e.target.value;
-    CeremoniesData(selectedFilter);
+    setFilter(e.target.value);
   };
+
+
+
+  const filteredCeremonies = allCeremonies.filter(ceremony => {
+    if (filter === 'ALL') {
+      return true;
+    }
+    return ceremony.state === filter;
+  });
 
   return (
     <>
       <div>
-        <select onChange={handleChange} defaultValue="">
-          <option value="find-opened">OPEN</option>
-          <option value="find-closed">CLOSED</option>
-          <option value="find-scheduled">SCHEDULED</option>
+        <label htmlFor="ceremony-filter">Filter by state: </label>
+        <select id="ceremony-filter" onChange={handleChange} value={filter}>
+          <option value="ALL">ALL</option>
+          <option value="OPEN">OPEN</option>
+          <option value="CLOSED">CLOSED</option>
+          <option value="SCHEDULED">SCHEDULED</option>
         </select>
         <ul>
-          {ceremonies.map((ceremony, index) => (
-            <li key={index}>
-              <div>
-                <h2>{ceremony.title}</h2>
-                <p>{ceremony.description}</p>
+
+          {filteredCeremonies.length > 0 ? (
+            filteredCeremonies.map((ceremony) => (
+              <li key={ceremony.id}>
                 <div>
-                  <p>Start date:{fromPosixToDate(ceremony.startDate)}</p>
-                  <p>End date:{fromPosixToDate(ceremony.endDate)}</p>
-                  <p>DeadLine: {
-                    deadLine(ceremony.endDate) >= 0
-                      ? `${deadLine(ceremony.endDate).toFixed(2)} days left`
-                      : `${Math.abs(deadLine(ceremony.endDate)).toFixed(2)} days ago`
-                  }</p>
+                  <h3>{ceremony.title}</h3>
+                  <p><strong>State:</strong> {ceremony.state}</p>
+                  <p>{ceremony.description}</p>
+                  <div>
+                    <p><strong>Start date:</strong> {fromPosixToDate(ceremony.startDate)}</p>
+                    <p><strong>End date:</strong> {fromPosixToDate(ceremony.endDate)}</p>
+                    <p><strong>Deadline:</strong> {
+                      deadLine(ceremony.endDate) >= 0
+                        ? `${deadLine(ceremony.endDate).toFixed(0)} days left`
+                        : `${Math.abs(deadLine(ceremony.endDate)).toFixed(0)} days ago`
+                    }</p>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            ))
+          ) : (
+            <p>No ceremonies found for the selected filter.</p>
+          )}
         </ul>
       </div>
     </>
