@@ -88,7 +88,7 @@ function CeremoniesData() {
         <label htmlFor="ceremony-filter">Filter by state: </label>
         <select id="ceremony-filter" onChange={handleChange} value={filter}>
           <option value="ALL">ALL</option>
-          <option value="OPEN">OPEN</option>
+          <option value="OPENED">OPENED</option>
           <option value="CLOSED">CLOSED</option>
           <option value="SCHEDULED">SCHEDULED</option>
         </select>
